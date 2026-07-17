@@ -1,7 +1,17 @@
-function MessageList() {
+import { useState } from "react";
+import { getMessages } from "../services/api";
 
-  const handleListMessages = () => {
-    console.log("Fetch all messages");
+function MessageList() {
+  const [messages, setMessages] = useState([]);
+
+  const handleListMessages = async () => {
+    try {
+      const response = await getMessages();
+
+      setMessages(response.data);
+    } catch (error) {
+      console.error(error);
+    }
   };
 
   return (
@@ -12,7 +22,19 @@ function MessageList() {
         List Messages
       </button>
 
-      <p>No messages yet.</p>
+      {messages.length === 0 ? (
+        <p>No messages yet.</p>
+      ) : (
+        <ul>
+          {messages.map((item, index) => (
+            <li key={index}>
+              <strong>{item.message}</strong>
+              <br />
+              <small>{item.timestamp}</small>
+            </li>
+          ))}
+        </ul>
+      )}
     </div>
   );
 }

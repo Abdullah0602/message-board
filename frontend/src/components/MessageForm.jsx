@@ -1,10 +1,21 @@
 import { useState } from "react";
+import { createMessage } from "../services/api";
 
 function MessageForm() {
   const [message, setMessage] = useState("");
 
-  const handleSubmit = () => {
-    console.log("Submitted:", message);
+  const handleSubmit = async () => {
+    if (!message.trim()) return;
+
+    try {
+      await createMessage(message);
+
+      console.log("Message submitted");
+
+      setMessage("");
+    } catch (error) {
+      console.error(error);
+    }
   };
 
   return (
@@ -19,7 +30,9 @@ function MessageForm() {
       />
 
       <div className="buttons">
-        <button onClick={handleSubmit}>Submit</button>
+        <button onClick={handleSubmit}>
+          Submit
+        </button>
       </div>
     </div>
   );
