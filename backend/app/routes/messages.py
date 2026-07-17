@@ -1,29 +1,34 @@
 from datetime import datetime
 
-from fastapi import APIRouter
+from fastapi import APIRouter, Depends
+from sqlalchemy.orm import Session
 
-from app.schemas.message import MessageCreate
+from app.database import get_db
+from app.models.message import Message
+from app.schemas.message import MessageCreate, MessageResponse
 
 router = APIRouter()
 
-messages = []
+
+@router.post("/messages", response_model=MessageResponse)
+def create_message(
+    data: MessageCreate,
+    db: Session = Depends(get_db)
+):
+    new_message = Message(
+        message=data.message,
+        timestamp=datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    )
+
+    db.add(new_message)
+    db.commit()
+    db.refresh(new_message)
+
+    return new_message
 
 
-@router.post("/messages")
-def create_message(data: MessageCreate):
-    new_message = {
-        "message": data.message,
-        "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    }
-
-    messages.append(new_message)
-
-    return {
-        "status": "success",
-        "data": new_message
-    }
-
-
-@router.get("/messages")
-def list_messages():
-    return messages
+@router.get("/messages", response_model=list[MessageResponse])
+def list_messages(
+    db: Session = Depends(get_db)
+):
+    return db.query(Message).all()
